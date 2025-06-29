@@ -26,17 +26,17 @@ graph TD
 
         FS[("Kho Đặc Trưng<br>(SageMaker Feature Store)")]:::storage
         
-        U -- "1. Gửi yêu cầu chấm điểm" --> FA
-        FA -- "2. Gửi yêu cầu API với dữ liệu khách hàng" --> API_GW
-        API_GW -- "3. Chuyển tiếp yêu cầu suy luận" --> Lambda_Score
-        Lambda_Score -- "4. Lấy các đặc trưng đã xử lý" --> FS
-        Lambda_Score -- "5. Gửi dữ liệu & đặc trưng để chấm điểm" --> SMEP
-        SMEP -- "6. Trả về điểm số & các yếu tố ảnh hưởng" --> Lambda_Score
-        Lambda_Score -- "7. Yêu cầu tạo diễn giải" --> LLM
-        LLM -- "8. Trả về diễn giải bằng ngôn ngữ tự nhiên" --> Lambda_Score
-        Lambda_Score -- "9. Tổng hợp kết quả (Điểm + Diễn giải)" --> API_GW
-        API_GW -- "10. Trả kết quả về giao diện" --> FA
-        FA -- "11. Hiển thị Báo cáo" --> U
+        U -- "1: Gửi yêu cầu chấm điểm" --> FA
+        FA -- "2: Gửi yêu cầu API với dữ liệu khách hàng" --> API_GW
+        API_GW -- "3: Chuyển tiếp yêu cầu suy luận" --> Lambda_Score
+        Lambda_Score -- "4: Lấy các đặc trưng đã xử lý" --> FS
+        Lambda_Score -- "5: Gửi dữ liệu & đặc trưng để chấm điểm" --> SMEP
+        SMEP -- "6: Trả về điểm số & các yếu tố ảnh hưởng" --> Lambda_Score
+        Lambda_Score -- "7: Yêu cầu tạo diễn giải" --> LLM
+        LLM -- "8: Trả về diễn giải bằng ngôn ngữ tự nhiên" --> Lambda_Score
+        Lambda_Score -- "9: Tổng hợp kết quả (Điểm + Diễn giải)" --> API_GW
+        API_GW -- "10: Trả kết quả về giao diện" --> FA
+        FA -- "11: Hiển thị Báo cáo" --> U
     end
 
     %% -- Offline Flow: Data Processing and Model Training --
