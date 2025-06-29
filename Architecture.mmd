@@ -1,0 +1,73 @@
+graph LR
+
+    %% -- Node Styling --
+    classDef awsNode fill:#fff,stroke:#fff,stroke-width:0px
+    %% Define a new class for larger FontAwesome icons
+    classDef faIconNode fill:#fff,stroke:#fff,stroke-width:0px,font-size:24px,font-weight:bold
+
+    %% -- Define All Nodes First (BEST PRACTICE) --
+    %% This prevents errors where a node is used in a link before it's defined.
+    
+    %% --- Core & Ancillary Nodes ---
+    A["<img src='https://raw.githubusercontent.com/nnminh322/AWS-icon/main/S3-svg.svg' width='50' /> <img src='https://raw.githubusercontent.com/mingrammer/diagrams/master/resources/aws/network/api-gateway.png' width='50' /><br><b>Data Ingest</b>"]:::awsNode
+    B["<img src='https://raw.githubusercontent.com/mingrammer/diagrams/master/resources/aws/compute/lambda.png' width='50' /><br><b>Customer Type Router</b>"]:::awsNode
+    C["<img src='https://raw.githubusercontent.com/mingrammer/diagrams/master/resources/aws/analytics/glue.png' width='50' /><br><b>Structured Preprocessing</b>"]:::awsNode
+    D["fa:fa-file-alt <br> <b>Unstructured Processing</b>"]:::faIconNode
+    E["fa:fa-database <br> <b>Feature Store</b>"]:::faIconNode
+    F["fa:fa-cogs <br> <b>Training Pipeline</b>"]:::faIconNode
+    G1["fa:fa-server <br> <b>Batch Serving</b>"]:::faIconNode
+    H["fa:fa-lightbulb <br> <b>Explainability</b>"]:::faIconNode
+    I["<img src='https://raw.githubusercontent.com/mingrammer/diagrams/master/resources/aws/management/cloudwatch.png' width='50' /><br><b>Monitoring</b>"]:::awsNode
+    L["<img src='https://raw.githubusercontent.com/mingrammer/diagrams/master/resources/aws/mobile/amplify.png' width='50' /><br><b>Frontend</b>"]:::awsNode
+    M["fa:fa-archive <br> <b>Model Registry</b>"]:::faIconNode
+    N["<b>User Report</b>"]
+    Z["<img src='https://raw.githubusercontent.com/mingrammer/diagrams/master/resources/onprem/vcs/github.png' width='50' /><br><b>Source Control</b>"]:::awsNode
+    CI["<img src='https://raw.githubusercontent.com/mingrammer/diagrams/master/resources/aws/devtools/codepipeline.png' width='50' /><br><b>CI/CD Pipeline</b>"]:::awsNode
+
+    %% --- Realtime Serving Nodes ---
+    G2_APIGW["<img src='https://raw.githubusercontent.com/mingrammer/diagrams/master/resources/aws/network/api-gateway.png' width='50' /><br><b>API Gateway</b>"]:::awsNode
+    G2_Lambda["<img src='https://raw.githubusercontent.com/mingrammer/diagrams/master/resources/aws/compute/lambda.png' width='50' /><br><b>Lambda</b>"]:::awsNode
+    G2_Endpoint["fa:fa-plug <br> <b>SageMaker Endpoint</b>"]:::faIconNode
+
+    %% -- Define Layout and Connections --
+
+    %% -- Core AI/ML Pipeline --
+    subgraph "Core AI/ML Pipeline"
+        direction LR
+        subgraph "Ingestion & Processing"
+            A --> B
+            B --> C
+            B --> D
+            C --> E
+            D --> E
+        end
+        subgraph "Model Lifecycle"
+            E --> F --> M
+        end
+        subgraph "Serving & Explainability"
+            M -- "Deploy" --> G1
+            M -- "Deploy" --> G2_Endpoint
+            G1 --> H
+            G2_Endpoint --> H
+            H --> I
+        end
+    end
+    
+    %% -- Realtime Serving Sub-flow --
+    subgraph "Realtime Serving & Frontend"
+        direction TB
+        %% Nodes are defined above, so we just create links here
+        G2_APIGW --> G2_Lambda --> G2_Endpoint
+        G2_APIGW --> L --> N
+    end
+
+    %% -- Ancillary Flows --
+    subgraph "CI/CD"
+        direction TB
+        Z --> CI
+    end
+
+    %% -- Inter-subgraph Connections --
+    CI --> M
+    I -- "Drift Signals" --> F
+    N -- "New Data / Labels" --> A

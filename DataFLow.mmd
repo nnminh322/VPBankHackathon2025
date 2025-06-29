@@ -1,0 +1,72 @@
+graph TD
+    %% -- Styles for visual clarity --
+    classDef data fill:#e6f3ff,stroke:#007bff,stroke-width:2px;
+    classDef process fill:#d4edda,stroke:#155724,stroke-width:2px;
+    classDef storage fill:#fff3cd,stroke:#856404,stroke-width:2px;
+    classDef api fill:#f8d7da,stroke:#721c24,stroke-width:2px;
+    classDef user fill:#d1ecf1,stroke:#0c5460,stroke-width:2px;
+
+    %% -- Main Flow: Real-time Scoring --
+    subgraph "Luồng Chấm Điểm & Báo Cáo (Real-time)"
+        direction LR
+        U["Người dùng Business / Nhân viên Tín dụng"]:::user
+        FA["Giao diện Web (Frontend)"]:::user
+
+        subgraph "Cổng Giao Tiếp & Xử Lý Yêu Cầu"
+            direction TB
+            API_GW[("API Gateway")]:::api
+            Lambda_Score["Lambda Xử Lý Điểm"]:::process
+        end
+        
+        subgraph "Lõi Chấm Điểm & Diễn giải (AI/ML Core)"
+            direction TB
+            SMEP[("SageMaker Endpoint")]:::process
+            LLM["Mô hình Ngôn ngữ Lớn (LLM)"]:::process
+        end
+
+        FS[("Kho Đặc Trưng<br>(SageMaker Feature Store)")]:::storage
+        
+        U -- "1. Gửi yêu cầu chấm điểm" --> FA
+        FA -- "2. Gửi yêu cầu API với dữ liệu khách hàng" --> API_GW
+        API_GW -- "3. Chuyển tiếp yêu cầu suy luận" --> Lambda_Score
+        Lambda_Score -- "4. Lấy các đặc trưng đã xử lý" --> FS
+        Lambda_Score -- "5. Gửi dữ liệu & đặc trưng để chấm điểm" --> SMEP
+        SMEP -- "6. Trả về điểm số & các yếu tố ảnh hưởng" --> Lambda_Score
+        Lambda_Score -- "7. Yêu cầu tạo diễn giải" --> LLM
+        LLM -- "8. Trả về diễn giải bằng ngôn ngữ tự nhiên" --> Lambda_Score
+        Lambda_Score -- "9. Tổng hợp kết quả (Điểm + Diễn giải)" --> API_GW
+        API_GW -- "10. Trả kết quả về giao diện" --> FA
+        FA -- "11. Hiển thị Báo cáo" --> U
+    end
+
+    %% -- Offline Flow: Data Processing and Model Training --
+    subgraph "Luồng Xử Lý Dữ Liệu & Huấn Luyện Mô Hình (Offline / Batch)"
+        direction TB
+        DS["Nguồn Dữ liệu Thô (External)"]:::data
+        S3[("Amazon S3<br>(Lưu trữ Dữ liệu Thô)")]:::storage
+        
+        subgraph "Tiền xử lý & Trích xuất Đặc trưng"
+            GLUE["AWS Glue<br>(Tiền xử lý Cấu trúc)"]:::process
+            TXT["Amazon Textract<br>(Trích xuất Phi cấu trúc)"]:::process
+        end
+        
+        SP["SageMaker Pipelines<br>(Hệ thống Huấn luyện)"]:::process
+        MR[("SageMaker Model Registry<br>(Kho Mô hình)")]:::storage
+        
+        DS -- "Dữ liệu thô mới" --> S3
+        S3 -- "Dữ liệu cấu trúc" --> GLUE
+        S3 -- "Dữ liệu phi cấu trúc" --> TXT
+        GLUE -- "Đặc trưng cấu trúc" --> FS
+        TXT -- "Đặc trưng phi cấu trúc" --> FS
+        FS -- "Dữ liệu đặc trưng cho huấn luyện" --> SP
+        SP -- "Mô hình đã huấn luyện & đánh giá" --> MR
+    end
+
+    %% -- Connections between flows & Feedback Loops --
+    MR -- "Triển khai mô hình đã huấn luyện" --> SMEP
+
+    Monitor["Giám sát Mô hình"]:::process
+    Monitor -- "Tín hiệu trượt dữ liệu/mô hình" --> SP
+
+    User_Report["Báo cáo Người dùng"]:::user
+    User_Report -- "Dữ liệu/Nhãn mới" --> DS
